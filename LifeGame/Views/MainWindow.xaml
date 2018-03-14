@@ -1,0 +1,438 @@
+﻿<Controls:MetroWindow
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:ViewModels="clr-namespace:LifeGame.ViewModels"
+    xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:Converters="clr-namespace:LifeGame.Converters"
+    xmlns:LifeGame="clr-namespace:LifeGame.Controls;assembly=LifeGame.Controls"
+    xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options" 
+    xmlns:local="clr-namespace:LifeGame.Views"
+    xmlns:actions="clr-namespace:LifeGame.PrismTriggerActions"
+    x:Class="LifeGame.Views.MainWindow"
+    prism:ViewModelLocator.AutoWireViewModel="True" 
+    mc:Ignorable="d PresentationOptions"
+    d:DataContext="{d:DesignInstance {x:Type ViewModels:MainWindowViewModel}, IsDesignTimeCreatable=True}" 
+    Height="650"
+    Width="800"
+    SaveWindowPosition="True">
+    <Controls:MetroWindow.Resources>
+        <Converters:CellStateToStringConverter x:Key="CellStateToStringConverter"/>
+        <Converters:CellToCellStateHistoryConverter x:Key="CellToCellStateHistoryConverter"/>
+        <Converters:CellToCoordinateConverter x:Key="CellToCoordinateConverter"/>
+        <Converters:CellToCellStateConverter x:Key="CellToCellStateConverter"/>
+        <Converters:BoolReverseConverter x:Key="BoolReverseConverter"/>
+        <Converters:CellToIsAliveConverter x:Key="CellToIsAliveConverter"/>
+        <ViewModels:MainWindowViewModel x:Key="ViewModel"/>
+    </Controls:MetroWindow.Resources>
+    <Controls:MetroWindow.Title>
+        <Binding Mode="OneWay" Path="Title" Source="{StaticResource resources}"/>
+    </Controls:MetroWindow.Title>
+
+    <Controls:MetroWindow.InputBindings>
+        <KeyBinding Gesture="Ctrl+R" Command="{Binding Random}"/>
+        <KeyBinding Gesture="Ctrl+C" Command="{Binding Reset}"/>
+        <KeyBinding Key="Space" Command="{Binding Start}"/>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding Stop}"/>
+        <KeyBinding Gesture="Ctrl+B" Command="{Binding TraceBack}"/>
+        <KeyBinding Gesture="Ctrl+Right" Command="{Binding ToNextGeneration}"/>
+        <KeyBinding Gesture="Ctrl+Left" Command="{Binding ToPreviousGeneration}"/>
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding ToFirstGeneration}"/>
+        <KeyBinding Gesture="Ctrl+L" Command="{Binding ToLastGeneration}"/>
+        <KeyBinding Gesture="Ctrl+M" Command="{Binding ChangeEditMode}"/>
+    </Controls:MetroWindow.InputBindings>
+    
+    <i:Interaction.Triggers>
+        <prism:InteractionRequestTrigger SourceObject="{Binding NotificationRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" CenterOverAssociatedObject="True">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="ResizeMode" Value="NoResize" />
+                        <Setter Property="SizeToContent" Value="WidthAndHeight" />
+                        <Setter Property="Foreground" Value="White"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+        <prism:InteractionRequestTrigger SourceObject="{Binding ConfirmationRequest, Mode=OneWay}">
+            <prism:PopupWindowAction IsModal="True" CenterOverAssociatedObject="True">
+                <prism:PopupWindowAction.WindowStyle>
+                    <Style TargetType="Window">
+                        <Setter Property="ResizeMode" Value="NoResize" />
+                        <Setter Property="SizeToContent" Value="WidthAndHeight" />
+                        <Setter Property="Foreground" Value="White"/>
+                    </Style>
+                </prism:PopupWindowAction.WindowStyle>
+            </prism:PopupWindowAction>
+        </prism:InteractionRequestTrigger>
+
+        <prism:InteractionRequestTrigger SourceObject="{Binding ShowSettingsWindowRequest}">
+            <actions:ShowSettingsAction IsModal="True">
+
+            </actions:ShowSettingsAction>
+        </prism:InteractionRequestTrigger>
+    </i:Interaction.Triggers>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="4*"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Menu x:Name="Menu" Grid.ColumnSpan="3">
+            <MenuItem Header="{Binding Edit, Mode=OneWay, Source={StaticResource resources}}">
+                <MenuItem
+                    Header="{Binding Random, Mode=OneWay, Source={StaticResource resources}}"
+                    Command="{Binding Random}"
+                    InputGestureText="Ctrl+R"/>
+                <MenuItem
+                    Header="{Binding Reset, Mode=OneWay, Source={StaticResource resources}}"
+                    Command="{Binding Reset}"
+                    InputGestureText="Ctrl+C"/>
+            </MenuItem>
+            <MenuItem
+                Header="{Binding Settings, Mode=OneWay, Source={StaticResource resources}}"
+                Command="{Binding ShowSettingsWindow}"/>
+        </Menu>
+        <Grid x:Name="MainPanel" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <Controls:NumericUpDown
+                    x:Name="RowColumnCount"
+                    Minimum="3"
+                    Maximum="100"
+                    Value="{Binding RowColumnCount.Value}" 
+                    StringFormat="{Binding RowColumn, Mode=OneWay, Source={StaticResource resources}}"
+                    TrackMouseWheelWhenMouseOver="True"
+                    BorderThickness="1,1,1,0" 
+                    BorderBrush="White"/>
+                <Button 
+                    Content="{Binding ChangeCells, Mode=OneWay, Source={StaticResource resources}}" 
+                    Command="{Binding ChangeCellsRowAndColumn}"
+                    FontSize="12"
+                    Style="{DynamicResource SquareButtonStyle}"
+                    BorderThickness="1,0,1,1"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                <Controls:NumericUpDown
+                    Minimum="3"
+                    Maximum="100"
+                    Value="{Binding ColumnCount.Value}"
+                    StringFormat="{Binding Column, Mode=OneWay, Source={StaticResource resources}}"
+                    TrackMouseWheelWhenMouseOver="True" 
+                    BorderThickness="1,1,1,0" 
+                    BorderBrush="White"/>
+                <Button 
+                    Content="{Binding ChangeCells, Mode=OneWay, Source={StaticResource resources}}" 
+                    Command="{Binding ChangeCells}"
+                    FontSize="12"
+                    Style="{DynamicResource SquareButtonStyle}"
+                    BorderThickness="1,0,1,1"/>
+            </StackPanel>
+            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                <Controls:NumericUpDown
+                    Minimum="3"
+                    Maximum="100" 
+                    Value="{Binding RowCount.Value}"
+                    StringFormat="{Binding Row, Mode=OneWay, Source={StaticResource resources}}"
+                    TrackMouseWheelWhenMouseOver="True" 
+                    BorderThickness="1,1,1,0" 
+                    BorderBrush="White"/>
+                <Button
+                    Content="{Binding ChangeCells, Mode=OneWay, Source={StaticResource resources}}"
+                    Command="{Binding ChangeCells}"
+                    FontSize="12"
+                    Style="{DynamicResource SquareButtonStyle}" 
+                    BorderThickness="1,0,1,1"/>
+            </StackPanel>
+            <ListBox
+                x:Name="listBox"
+                Grid.Column="1"
+                Grid.Row="1"
+                ItemsSource="{Binding CellManager.Cells}"
+                VerticalContentAlignment="Stretch"
+                HorizontalContentAlignment="Stretch"
+                Background="White"
+                BorderThickness="0.5"
+                BorderBrush="{Binding CellBorderBrush.Value}"
+                ScrollViewer.IsDeferredScrollingEnabled="True">
+                <ListBox.InputBindings>
+                    <KeyBinding Gesture="Ctrl+Right" Command="{Binding ToNextGeneration}"/>
+                    <KeyBinding Gesture="Ctrl+Left" Command="{Binding ToPreviousGeneration}"/>
+                </ListBox.InputBindings>
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding CellManager.ColumnCount}"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <ItemContainerTemplate>
+                        <LifeGame:CellControl
+                            IsAlive="{Binding IsAlive, Mode=TwoWay}"
+                            IsEditable="{Binding DataContext.IsEditable.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}"
+                            AliveBrush="{Binding AliveCellBrush.Value, Source={StaticResource ViewModel}}"
+                            DeadBrush="{Binding DeadCellBrush.Value,Source={StaticResource ViewModel}}"
+                            BorderThickness="0.5"
+                            BorderBrush="{Binding DataContext.CellBorderBrush.Value, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Controls:MetroWindow}}}">
+                        </LifeGame:CellControl>
+                    </ItemContainerTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0"/>
+                        <Setter Property="Focusable" Value="False"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="true">
+                                <Setter Property="IsSelected" Value="true" />
+                                <Setter Property="BorderBrush" Value="Red"/>
+                                <Setter Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </Grid>
+        <Grid 
+            x:Name="HistoryPanel"
+            Grid.Column="1"
+            Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label 
+                Content="{Binding StateHistory, Mode=OneWay, Source={StaticResource resources}}"
+                Height="54" 
+                VerticalContentAlignment="Bottom"
+                HorizontalContentAlignment="Center"/>
+            <ListView
+                ItemsSource="{Binding SelectedItem, Converter={StaticResource CellToCellStateHistoryConverter}, ElementName=listBox}"
+                Focusable="False"
+                BorderThickness="0,1,1,1" 
+                Grid.Row="1"
+                SelectionMode="Single"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                ScrollViewer.PanningMode="VerticalOnly"
+                ScrollViewer.VerticalScrollBarVisibility="Visible"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel
+                            Orientation="Vertical"
+                            CanVerticallyScroll="True"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
+        </Grid>
+        <Grid x:Name="OperationPanel" Grid.Row="2" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid Grid.ColumnSpan="3" Margin="0,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.5*"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Controls:NumericUpDown
+                    Value="{Binding UpdateSpeed.Value}"
+                    Minimum="1"
+                    StringFormat="0ms" 
+                    TrackMouseWheelWhenMouseOver="True" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+                <CheckBox
+                    Content="{Binding SelectionMode, Mode=OneWay, Source={StaticResource resources}}"
+                    IsChecked="{Binding IsEditable.Value, Mode=TwoWay}"
+                    Grid.Column="1" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+                <StackPanel
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+                    <Button 
+                        Content="{Binding Random, Mode=OneWay, Source={StaticResource resources}}" 
+                        Command="{Binding Random}"/>
+                    <Controls:NumericUpDown
+                        Value="{Binding AliveWeight.Value}"
+                        Minimum="1"
+                        Maximum="100"
+                        StringFormat="生:0\%"
+                        TrackMouseWheelWhenMouseOver="True"
+                        />
+                </StackPanel>
+            </Grid>
+            <Button
+                Content="{Binding TraceBack, Mode=OneWay, Source={StaticResource resources}}" 
+                Command="{Binding TraceBack, Mode=OneWay}"
+                Grid.Row="1"/>
+            <Button
+                Content="{Binding Stop, Mode=OneWay, Source={StaticResource resources}}"
+                Command="{Binding Stop, Mode=OneWay}" 
+                Grid.Column="1"
+                Grid.Row="1"/>
+            <Button
+                Content="{Binding Reset, Mode=OneWay, Source={StaticResource resources}}"
+                Command="{Binding Reset}"
+                Grid.Column="1"
+                Grid.Row="2"/>
+            <Button
+                Content="{Binding Start, Mode=OneWay, Source={StaticResource resources}}"
+                Command="{Binding Start, Mode=OneWay}"
+                Grid.Column="2"
+                Grid.Row="1"/>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Controls:NumericUpDown
+                    Minimum="1"
+                    Maximum="10"
+                    TrackMouseWheelWhenMouseOver="True"
+                    Value="{Binding ToPreviousGenerationCount.Value}" Grid.Column="2"/>
+                <Button
+                    Content="{Binding ToPreviousGeneration, Mode=OneWay, Source={StaticResource resources}}"
+                    Command="{Binding ToPreviousGeneration, Mode=OneWay}"
+                    Grid.Column="1"/>
+                <Button
+                    Content="最初へ"
+                    Command="{Binding ToFirstGeneration}"
+                    />
+            </Grid>
+            <Grid Grid.Row="2" Grid.Column="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Controls:NumericUpDown 
+                    Minimum="1"
+                    Maximum="10"
+                    TrackMouseWheelWhenMouseOver="True"
+                    Value="{Binding ToNextGenerationCount.Value}"/>
+                <Button
+                    Content="{Binding ToNextGeneration, Mode=OneWay, Source={StaticResource resources}}"
+                    Command="{Binding ToNextGeneration, Mode=OneWay}"
+                    Grid.Column="1"/>
+                <Button
+                    Content="最後へ"
+                    Command="{Binding ToLastGeneration}"
+                    Grid.Column="2"
+                    />
+            </Grid>
+        </Grid>
+        <StatusBar
+            x:Name="StatusBar"
+            Grid.Row="3">
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}:{1}">
+                        <Binding Path="Generation" Mode="OneWay" Source="{StaticResource resources}"/>
+                        <Binding Path="Generation.Value" Mode="OneWay"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock
+                Margin="10,0,0,0">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}:{1}/{2}">
+                        <Binding Path="AliveCellsCount" Source="{StaticResource resources}"/>
+                        <Binding Path="AlivCellsCount.Value" Mode="OneWay"/>
+                        <Binding Path="CellsCount.Value" Mode="OneWay"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock
+                Margin="10,0,0,0">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}【{1}】">
+                        <Binding Path="Coordinate" Mode="OneWay" Source="{StaticResource resources}"/>
+                        <Binding Path="SelectedItem" ElementName="listBox" Converter="{StaticResource CellToCoordinateConverter}"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock Margin="10,0,0,0">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}:{1}">
+                        <Binding Path="IsAlive" Mode="OneWay" Source="{StaticResource resources}"/>
+                        <Binding Path="SelectedItem" ElementName="listBox" Converter="{StaticResource CellToIsAliveConverter}"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock Margin="10,0,0,0">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}:{1}">
+                        <Binding Path="State" Mode="OneWay" Source="{StaticResource resources}"/>
+                        <Binding Path="SelectedItem" ElementName="listBox" Converter="{StaticResource CellToCellStateConverter}"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+        </StatusBar>
+        <Grid Grid.Column="1" Grid.Row="2" Grid.RowSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock
+                Text="{Binding CurrentDirectoryName.Value}" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <TextBox
+                Text="{Binding SaveFileName.Value}"
+                Controls:TextBoxHelper.Watermark="{Binding FileName, Mode=OneWay, Source={StaticResource resources}}" Grid.Row="1"/>
+            <Button
+                Content="{Binding Save, Mode=OneWay, Source={StaticResource resources}}"
+                Command="{Binding Save}"
+                Grid.Row="2"/>
+            <ComboBox
+                x:Name="comboBox"
+                ItemsSource="{Binding CellDataFiles}"
+                Grid.Row="3"
+                VerticalAlignment="Top"
+                SelectedItem="{Binding SelectionFile.Value}"
+                DisplayMemberPath="Name"/>
+            <Grid
+                Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button
+                    Content="{Binding Load, Mode=OneWay, Source={StaticResource resources}}"
+                    Command="{Binding Load}"/>
+                <Button
+                    Content="更新"
+                    Command="{Binding DirectoryReload}"
+                    Grid.Column="1"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Controls:MetroWindow>
